@@ -21,6 +21,13 @@ import Scalaz._
 
 package object lucid {
 
+  def trimPathPrefix(pathPrefix: String): String = {
+    ~Option(pathPrefix).flatMap { p =>
+      val prefix = p.dropWhile(_ === '/').reverse.dropWhile(_ === '/').reverse
+      (prefix.length > 0).option("/" + prefix)
+    }
+  }
+
   def validating[A](a: => A): Validation[Throwable, A] = a.pure[Function0].throws
 
   implicit def validationToValidationW[E, A](v: Validation[E, A]): ValidationW[E, A] = new ValidationW[E, A] {

@@ -16,13 +16,11 @@ package com.stackmob.lucid
  * limitations under the License.
  */
 
-import java.io.File
 import java.net.{HttpURLConnection, URI}
 import java.util.Properties
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 import org.specs2._
-import com.stackmob.lucid._
 import scalaz._
 import Scalaz._
 

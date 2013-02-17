@@ -118,53 +118,53 @@ class ProvisioningClientSpecs
   case class provision() extends CommonContext {
 
     def created = apply {
-      forAllNoShrink(genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (request, module, configVars, pwd) =>
+      forAllNoShrink(genPathPrefix, genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (pathPrefix, request, module, configVars, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.post(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_CREATED,
           body = compact(render(toJSON(InternalProvisionResponse(configVars)))).some,
-          headers = List(new BasicHeader(HttpHeaders.LOCATION, "http://localhost/%s/%s".format(provisionURL, request.id)), jsonContentTypeHeader).toNel
+          headers = List(new BasicHeader(HttpHeaders.LOCATION, "http://localhost%s/%s".format(pathPrefix + provisionURL, request.id)), jsonContentTypeHeader).toNel
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInProvisionResponse(request)
       }
     }
 
     def notAuthorized = apply {
-      forAllNoShrink(genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (request, module, configVars, pwd) =>
+      forAllNoShrink(genPathPrefix, genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (pathPrefix, request, module, configVars, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.post(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_UNAUTHORIZED,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInProvisionError(request, HttpURLConnection.HTTP_UNAUTHORIZED)
       }
     }
 
     def conflict = apply {
-      forAllNoShrink(genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (request, module, configVars, pwd) =>
+      forAllNoShrink(genPathPrefix, genProvisionRequest, genNonEmptyAlphaStr, genMap, genNonEmptyAlphaStr) { (pathPrefix, request, module, configVars, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.post(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_CONFLICT,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInProvisionError(request, HttpURLConnection.HTTP_CONFLICT)
       }
     }
 
     def error = apply {
-      forAllNoShrink(genProvisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (request, module, pwd, errors) =>
+      forAllNoShrink(genPathPrefix, genProvisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (pathPrefix, request, module, pwd, errors) =>
         val mockedClient = mock[HttpClient]
         mockedClient.post(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_INTERNAL_ERROR,
           body = compact(render((errorRootJSONKey -> toJSON(errors)))).some,
           headers = List(jsonContentTypeHeader).toNel
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInProvisionError(request, HttpURLConnection.HTTP_INTERNAL_ERROR)
       }
     }
@@ -174,53 +174,53 @@ class ProvisioningClientSpecs
   case class deprovision() extends CommonContext {
 
     def noContent = apply {
-      forAllNoShrink(genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.delete(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_NO_CONTENT,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInDeprovisionResponse(request)
       }
     }
 
     def notAuthorized = apply {
-      forAllNoShrink(genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.delete(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_UNAUTHORIZED,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInDeprovisionError(request, HttpURLConnection.HTTP_UNAUTHORIZED)
       }
     }
 
     def notFound = apply {
-      forAllNoShrink(genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.delete(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_NOT_FOUND,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInDeprovisionError(request, HttpURLConnection.HTTP_NOT_FOUND)
       }
     }
 
     def error = apply {
-      forAllNoShrink(genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (request, module, pwd, errors) =>
+      forAllNoShrink(genPathPrefix, genDeprovisionRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (pathPrefix, request, module, pwd, errors) =>
         val mockedClient = mock[HttpClient]
         mockedClient.delete(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_INTERNAL_ERROR,
           body = compact(render((errorRootJSONKey -> toJSON(errors)))).some,
           headers = List(jsonContentTypeHeader).toNel
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInDeprovisionError(request, HttpURLConnection.HTTP_INTERNAL_ERROR)
       }
     }
@@ -230,53 +230,53 @@ class ProvisioningClientSpecs
   case class change() extends CommonContext {
 
     def noContent = apply {
-      forAllNoShrink(genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.put(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_NO_CONTENT,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInChangePlanResponse(request)
       }
     }
 
     def notAuthorized = apply {
-      forAllNoShrink(genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.put(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_UNAUTHORIZED,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInChangePlanError(request, HttpURLConnection.HTTP_UNAUTHORIZED)
       }
     }
 
     def notFound = apply {
-      forAllNoShrink(genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (request, module, pwd) =>
+      forAllNoShrink(genPathPrefix, genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr) { (pathPrefix, request, module, pwd) =>
         val mockedClient = mock[HttpClient]
         mockedClient.put(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_NOT_FOUND,
           body = None,
           headers = None
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInChangePlanError(request, HttpURLConnection.HTTP_NOT_FOUND)
       }
     }
 
     def error = apply {
-      forAllNoShrink(genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (request, module, pwd, errors) =>
+      forAllNoShrink(genPathPrefix, genChangePlanRequest, genNonEmptyAlphaStr, genNonEmptyAlphaStr, genErrorMsgs) { (pathPrefix, request, module, pwd, errors) =>
         val mockedClient = mock[HttpClient]
         mockedClient.put(any[HttpRequest]) returns HttpResponse(
           code = HttpURLConnection.HTTP_INTERNAL_ERROR,
           body = compact(render((errorRootJSONKey -> toJSON(errors)))).some,
           headers = List(jsonContentTypeHeader).toNel
         ).pure[IO]
-        val client = new ProvisioningClient(httpClient = mockedClient, moduleId = module, password = pwd)
+        val client = new ProvisioningClient(pathPrefix = pathPrefix, httpClient = mockedClient, moduleId = module, password = pwd)
         client must resultInChangePlanError(request, HttpURLConnection.HTTP_INTERNAL_ERROR)
       }
     }

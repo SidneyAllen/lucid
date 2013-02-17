@@ -102,7 +102,7 @@ class ProvisioningClient(val host: String = "localhost",
       _ <- validatePassword(password)
       httpRequest <- validationT {
         HttpRequest(
-          url = "%s://%s:%s/%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL),
+          url = "%s://%s:%s%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL),
           body = compact(render(toJSON(request))).some,
           headers = List(getBasicAuthHeader(request), jsonContentTypeHeader).toNel
         ).success[LucidError].pure[IO]
@@ -128,7 +128,7 @@ class ProvisioningClient(val host: String = "localhost",
       _ <- validatePassword(password)
       httpRequest <- validationT {
         HttpRequest(
-          url = "%s://%s:%s/%s/%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL, request.id),
+          url = "%s://%s:%s%s/%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL, request.id),
           body = none,
           headers = List(getBasicAuthHeader(request)).toNel
         ).success[LucidError].pure[IO]
@@ -155,7 +155,7 @@ class ProvisioningClient(val host: String = "localhost",
       _ <- validatePassword(password)
       httpRequest <- validationT {
         HttpRequest(
-          url = "%s://%s:%s/%s/%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL, request.id),
+          url = "%s://%s:%s%s/%s".format(protocol, host, port, trimPathPrefix(pathPrefix) + provisionURL, request.id),
           body = compact(render(toJSON(request))).some,
           headers = List(getBasicAuthHeader(request), jsonContentTypeHeader).toNel
         ).success[LucidError].pure[IO]
@@ -215,14 +215,6 @@ class ProvisioningClient(val host: String = "localhost",
       } else {
         InputError("Invalid timestamp provided").fail
       }).pure[IO]
-    }
-  }
-
-  private def trimPathPrefix(prefix: String): String = {
-    if (~Option(prefix).map(_.length > 0)) {
-      prefix.reverse.dropWhile(_ === '/').reverse + "/"
-    } else {
-      ""
     }
   }
 
@@ -303,7 +295,7 @@ class ProvisioningClient(val host: String = "localhost",
 object ProvisioningClient {
   val defaultPort = 8080
   val errorRootJSONKey = "errors"
-  val provisionURL = "stackmob/provision"
+  val provisionURL = "/stackmob/provision"
   val jsonContentTypeHeader = new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
   val formURLEncodedContentTypeHeader = new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded")
 }

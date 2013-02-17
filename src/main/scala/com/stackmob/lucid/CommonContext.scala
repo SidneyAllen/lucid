@@ -36,6 +36,8 @@ trait CommonContext extends Around with Mockito {
     DigestUtils.sha1Hex("%s:%s:%s:%s".format(id, email, salt, timestamp))
   }
 
+  def genOption[T](gen: Gen[T]): Gen[Option[T]] = gen.flatMap(g => Gen.oneOf(g.some, none[T]))
+
   lazy val genNonEmptyAlphaStr: Gen[String] = {
     for {
       size <- Gen.choose(1, 256)
@@ -52,6 +54,8 @@ trait CommonContext extends Around with Mockito {
       keys <- Gen.listOfN[String](n, arbitrary[String])
     } yield keys.zip(values).toMap
   }
+
+  lazy val genPathPrefix: Gen[String] = genOption(Gen.alphaStr).map(~_.flatMap(p => (p.length > 0).option("/" + p)))
 
   lazy val genEmail: Gen[String] = {
     for {
@@ -146,8 +150,7 @@ trait CommonContext extends Around with Mockito {
   class ClientHasProvisionResponse(request: ProvisionRequest) extends Matcher[ProvisioningClient] {
     override def apply[S <: ProvisioningClient](r: Expectable[S]): MatchResult[S] = {
       val client = r.value
-      val prefix = if (~Option(client.pathPrefix).map(_.length > 0)) client.pathPrefix.reverse.dropWhile(_ == '/').reverse + "/" else ""
-      val expectedURI = new URI("%s://%s/%s/%s".format(client.protocol, client.host, prefix + provisionURL, request.id)).toString
+      val expectedURI = new URI("%s://%s%s/%s".format(client.protocol, client.host, trimPathPrefix(client.pathPrefix) + provisionURL, request.id)).toString
       val response = client.provision(request).unsafePerformIO
       response match {
         case scalaz.Success(s) =>
