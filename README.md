@@ -1,5 +1,8 @@
 # Lucid
 =====
+
+[![Build Status](https://travis-ci.org/stackmob/lucid.png)](https://travis-ci.org/stackmob/lucid)
+
 Lucid is a tool for StackMob partners to test their third party provisioning servers. The tests expect a provisioning server
 to be running on localhost:8080 by default, but is also configurable. The tests will generate a number of different requests
 and verify the responses are as expected.
