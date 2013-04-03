@@ -1,5 +1,5 @@
 # Provisioning
-StackMob will make provisioning requests to third-party module providers whenever a user adds, deletes, or changes the plan for a module. These third party module providers will be required to implement an API that matches the interface defined below.
+StackMob will make provisioning requests to third-party module providers whenever a user adds, deletes, or changes the plan for a module. These third party module providers will be required to implement an API that matches the interface defined below.  Any requests that take longer than 5 seconds will timeout.
 
 ## Authentication
 
